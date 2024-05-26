@@ -1,6 +1,6 @@
 import { kv } from "@vercel/kv";
 import { Ratelimit } from "@upstash/ratelimit";
-import { functions, runFunction } from "./functions";
+import { OpenAI } from "openai";
 
 export const runtime = "edge";
 
@@ -10,7 +10,7 @@ async function callCozeAPI(messages: any, token: string) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${process.env.COZE_API_TOKEN}`
     },
     body: JSON.stringify({
       conversation_id: "123", // Remplacez par l'ID de votre conversation
