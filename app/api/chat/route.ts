@@ -2,7 +2,7 @@ import { kv } from "@vercel/kv";
 import { Ratelimit } from "@upstash/ratelimit";
 
 // Fonction pour appeler l'API Coze
-async function callCozeAPI(messages: any, token: string) {
+async function callCozeAPI(messages: any) {
   const response = await fetch('https://api.coze.com/open_api/v2/chat', {
     method: 'POST',
     headers: {
