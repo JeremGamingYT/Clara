@@ -1,9 +1,10 @@
 import { kv } from "@vercel/kv";
 import { Ratelimit } from "@upstash/ratelimit";
 
-// Fonction pour appeler l'API Coze
 async function callCozeAPI(messages: any) {
   const token = "pat_GAdDwAiisG2p3PT5tfaxEX8LrV7oqMpKVsmpOQJ9nCuJwCxBlUQw8Vf7NSiuRiI9";
+  const botId = "7371913283235971077";
+  const userId = "290322018062355";
 
   const response = await fetch('https://api.coze.com/open_api/v2/chat', {
     method: 'POST',
@@ -13,8 +14,8 @@ async function callCozeAPI(messages: any) {
     },
     body: JSON.stringify({
       conversation_id: "123",
-      bot_id: "7371913283235971077",
-      user: "290322018062355",
+      bot_id: botId,
+      user: userId,
       query: messages[messages.length - 1].content,
       stream: false
     })
@@ -59,10 +60,16 @@ export async function POST(req: Request) {
 
   const { messages } = await req.json();
 
-  // Appeler l'API Coze
   try {
     const cozeResponse = await callCozeAPI(messages);
-    return new Response(JSON.stringify(cozeResponse), {
+    
+    const answerMessage = cozeResponse.messages.find((message: any) => 
+      message.role === 'assistant' && message.type === 'answer'
+    );
+
+    const content = answerMessage ? answerMessage.content : "No answer found";
+
+    return new Response(JSON.stringify({ content }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json'
