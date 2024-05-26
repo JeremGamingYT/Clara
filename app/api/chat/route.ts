@@ -67,7 +67,7 @@ export async function POST(req: Request) {
       message.role === 'assistant' && message.type === 'answer'
     );
 
-    const content = answerMessage ? answerMessage.content : "No answer found";
+    const content = answerMessage ? answerMessage.content : "No relevant answer found";
 
     return new Response(JSON.stringify({ content }), {
       status: 200,

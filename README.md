@@ -27,7 +27,7 @@
 
 ## Introduction
 
-ChatHN is an open-source AI chatbot that uses [OpenAI Functions](https://platform.openai.com/docs/guides/gpt/function-calling) and the [Vercel AI SDK](https://sdk.vercel.ai/docs) to interact with the [Hacker News API](https://github.com/HackerNews/API) with natural language.
+Clara an powerful AI
 
 https://github.com/steven-tey/chathn/assets/28986134/9c0ad554-f4e5-4e98-8771-5999ddf79235
 
