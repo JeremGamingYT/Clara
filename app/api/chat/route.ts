@@ -3,7 +3,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 
 // Fonction pour appeler l'API Coze
 async function callCozeAPI(messages: any) {
-  const token = "pat_GAdDwAiisG2p3PT5tfaxEX8LrV7oqMpKVsmpOQJ9nCuJwCxBlUQw8Vf7NSiuRiI9"; // Token fixe
+  const token = "pat_GAdDwAiisG2p3PT5tfaxEX8LrV7oqMpKVsmpOQJ9nCuJwCxBlUQw8Vf7NSiuRiI9";
 
   const response = await fetch('https://api.coze.com/open_api/v2/chat', {
     method: 'POST',
@@ -12,10 +12,10 @@ async function callCozeAPI(messages: any) {
       'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({
-      conversation_id: "123", // Remplacez par l'ID de votre conversation
-      bot_id: "73649188512364313445", // Remplacez par l'ID de votre bot, en tant que chaîne de caractères
-      user: "290322018062355", // Remplacez par l'ID de votre utilisateur
-      query: messages[messages.length - 1].content, // Envoie le dernier message de la conversation
+      conversation_id: "123",
+      bot_id: "73649188512364313445",
+      user: "290322018062355",
+      query: messages[messages.length - 1].content,
       stream: false
     })
   });
@@ -69,7 +69,8 @@ export async function POST(req: Request) {
       }
     });
   } catch (error) {
-    return new Response(`Erreur lors de l'appel à l'API Coze: ${error.message}`, {
+    const errorMessage = (error as Error).message || "Unknown error";
+    return new Response(`Erreur lors de l'appel à l'API Coze: ${errorMessage}`, {
       status: 500,
     });
   }
