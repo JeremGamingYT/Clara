@@ -1,8 +1,5 @@
 import { kv } from "@vercel/kv";
 import { Ratelimit } from "@upstash/ratelimit";
-import { OpenAI } from "openai";
-
-export const runtime = "edge";
 
 // Fonction pour appeler l'API Coze
 async function callCozeAPI(messages: any, token: string) {
@@ -14,8 +11,8 @@ async function callCozeAPI(messages: any, token: string) {
     },
     body: JSON.stringify({
       conversation_id: "123", // Remplacez par l'ID de votre conversation
-      bot_id: 7364918851236413445, // Remplacez par l'ID de votre bot
-      user: "29032201862555", // Remplacez par l'ID de votre utilisateur
+      bot_id: "73649188512364313445", // Remplacez par l'ID de votre bot, en tant que chaîne de caractères
+      user: "290322018062355", // Remplacez par l'ID de votre utilisateur
       query: messages[messages.length - 1].content, // Envoie le dernier message de la conversation
       stream: false
     })
@@ -27,6 +24,8 @@ async function callCozeAPI(messages: any, token: string) {
 
   return response.json();
 }
+
+export const runtime = "edge";
 
 export async function POST(req: Request) {
   if (
