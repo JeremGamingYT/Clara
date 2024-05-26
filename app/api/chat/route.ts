@@ -3,11 +3,13 @@ import { Ratelimit } from "@upstash/ratelimit";
 
 // Fonction pour appeler l'API Coze
 async function callCozeAPI(messages: any) {
+  const token = process.env.COZE_API_TOKEN; // Utilise la variable d'environnement
+
   const response = await fetch('https://api.coze.com/open_api/v2/chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.COZE_API_TOKEN}`
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({
       conversation_id: "123", // Remplacez par l'ID de votre conversation
@@ -59,7 +61,7 @@ export async function POST(req: Request) {
 
   // Appeler l'API Coze
   try {
-    const cozeResponse = await callCozeAPI(messages, process.env.COZE_API_TOKEN);
+    const cozeResponse = await callCozeAPI(messages);
     return new Response(JSON.stringify(cozeResponse), {
       status: 200,
       headers: {
