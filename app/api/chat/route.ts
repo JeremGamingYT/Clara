@@ -3,7 +3,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 
 // Fonction pour appeler l'API Coze
 async function callCozeAPI(messages: any) {
-  const token = process.env.COZE_API_TOKEN; // Utilise la variable d'environnement
+  const token = "pat_GAdDwAiisG2p3PT5tfaxEX8LrV7oqMpKVsmpOQJ9nCuJwCxBlUQw8Vf7NSiuRiI9"; // Token fixe
 
   const response = await fetch('https://api.coze.com/open_api/v2/chat', {
     method: 'POST',
