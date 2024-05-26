@@ -13,7 +13,7 @@ async function callCozeAPI(messages: any) {
     },
     body: JSON.stringify({
       conversation_id: "123",
-      bot_id: "73649188512364313445",
+      bot_id: "7371913283235971077",
       user: "290322018062355",
       query: messages[messages.length - 1].content,
       stream: false
