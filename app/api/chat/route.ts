@@ -1,6 +1,10 @@
 import { kv } from "@vercel/kv";
 import { Ratelimit } from "@upstash/ratelimit";
 
+function generateUniqueId(ip: string): string {
+  return Buffer.from(ip).toString('base64');
+}
+
 async function callCozeAPI(messages: any) {
   const token = "pat_GAdDwAiisG2p3PT5tfaxEX8LrV7oqMpKVsmpOQJ9nCuJwCxBlUQw8Vf7NSiuRiI9";
   const botId = "7371913283235971077";
@@ -31,19 +35,21 @@ async function callCozeAPI(messages: any) {
 export const runtime = "edge";
 
 export async function POST(req: Request) {
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const userId = generateUniqueId(ip);
+
   if (
     process.env.NODE_ENV !== "development" &&
     process.env.KV_REST_API_URL &&
     process.env.KV_REST_API_TOKEN
   ) {
-    const ip = req.headers.get("x-forwarded-for");
     const ratelimit = new Ratelimit({
       redis: kv,
       limiter: Ratelimit.slidingWindow(50, "1 d"),
     });
 
     const { success, limit, reset, remaining } = await ratelimit.limit(
-      `chathn_ratelimit_${ip}`,
+      `chathn_ratelimit_${userId}`,
     );
 
     if (!success) {
@@ -61,6 +67,9 @@ export async function POST(req: Request) {
   const { messages } = await req.json();
 
   try {
+    // Enregistrer la conversation dans la base de données
+    await kv.set(`conversation_${userId}`, messages);
+
     const cozeResponse = await callCozeAPI(messages);
     
     const answerMessage = cozeResponse.messages.find((message: any) => 
@@ -68,6 +77,12 @@ export async function POST(req: Request) {
     );
 
     const content = answerMessage ? answerMessage.content : "No relevant answer found";
+
+    // Ajouter la réponse de l'API à la conversation
+    messages.push({ role: 'assistant', content });
+
+    // Mettre à jour la conversation dans la base de données
+    await kv.set(`conversation_${userId}`, messages);
 
     return new Response(content, {
       status: 200,
@@ -78,6 +93,28 @@ export async function POST(req: Request) {
   } catch (error) {
     const errorMessage = (error as Error).message || "Unknown error";
     return new Response(`Erreur lors de l'appel à l'API: ${errorMessage}`, {
+      status: 500,
+    });
+  }
+}
+
+export async function GET(req: Request) {
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const userId = generateUniqueId(ip);
+
+  try {
+    // Récupérer la conversation depuis la base de données
+    const messages = await kv.get(`conversation_${userId}`);
+
+    return new Response(JSON.stringify(messages), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    const errorMessage = (error as Error).message || "Unknown error";
+    return new Response(`Erreur lors de la récupération de la conversation: ${errorMessage}`, {
       status: 500,
     });
   }
