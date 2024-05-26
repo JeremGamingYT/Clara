@@ -22,7 +22,7 @@ async function callCozeAPI(messages: any) {
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur API Coze: ${response.statusText}`);
+    throw new Error(`Erreur API: ${response.statusText}`);
   }
 
   return response.json();
@@ -69,15 +69,15 @@ export async function POST(req: Request) {
 
     const content = answerMessage ? answerMessage.content : "No relevant answer found";
 
-    return new Response(JSON.stringify({ content }), {
+    return new Response(content, {
       status: 200,
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'text/plain'
       }
     });
   } catch (error) {
     const errorMessage = (error as Error).message || "Unknown error";
-    return new Response(`Erreur lors de l'appel à l'API Coze: ${errorMessage}`, {
+    return new Response(`Erreur lors de l'appel à l'API: ${errorMessage}`, {
       status: 500,
     });
   }
