@@ -7,9 +7,9 @@ import { Analytics } from "@vercel/analytics/react";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Clara - An powerful AI",
+  title: "ChatHN – Chat with Hacker News using natural language",
   description:
-    "Chat with Clara using natural language.",
+    "Chat with Hacker News using natural language. Built with OpenAI Functions and Vercel AI SDK.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

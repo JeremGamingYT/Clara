@@ -1,15 +1,9 @@
 import { kv } from "@vercel/kv";
 import { Ratelimit } from "@upstash/ratelimit";
 
-
-function generateUniqueId(ip: string): string {
-  return Buffer.from(ip).toString('base64');
-}
-
+// Fonction pour appeler l'API Coze
 async function callCozeAPI(messages: any) {
   const token = "pat_GAdDwAiisG2p3PT5tfaxEX8LrV7oqMpKVsmpOQJ9nCuJwCxBlUQw8Vf7NSiuRiI9";
-  const botId = "7371913283235971077";
-  const userId = "290322018062355";
 
   const response = await fetch('https://api.coze.com/open_api/v2/chat', {
     method: 'POST',
@@ -19,15 +13,15 @@ async function callCozeAPI(messages: any) {
     },
     body: JSON.stringify({
       conversation_id: "123",
-      bot_id: botId,
-      user: userId,
+      bot_id: "7371913283235971077",
+      user: "290322018062355",
       query: messages[messages.length - 1].content,
       stream: false
     })
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur API: ${response.statusText}`);
+    throw new Error(`Erreur API Coze: ${response.statusText}`);
   }
 
   return response.json();
@@ -36,21 +30,19 @@ async function callCozeAPI(messages: any) {
 export const runtime = "edge";
 
 export async function POST(req: Request) {
-  const ip = req.headers.get("x-forwarded-for") || "unknown";
-  const userId = generateUniqueId(ip);
-
   if (
     process.env.NODE_ENV !== "development" &&
     process.env.KV_REST_API_URL &&
     process.env.KV_REST_API_TOKEN
   ) {
+    const ip = req.headers.get("x-forwarded-for");
     const ratelimit = new Ratelimit({
       redis: kv,
       limiter: Ratelimit.slidingWindow(50, "1 d"),
     });
 
     const { success, limit, reset, remaining } = await ratelimit.limit(
-      `chathn_ratelimit_${userId}`,
+      `chathn_ratelimit_${ip}`,
     );
 
     if (!success) {
@@ -67,47 +59,10 @@ export async function POST(req: Request) {
 
   const { messages } = await req.json();
 
+  // Appeler l'API Coze
   try {
-    // Enregistrer la conversation dans la base de données
-    await kv.set(`conversation_${userId}`, messages);
-
     const cozeResponse = await callCozeAPI(messages);
-    
-    const answerMessage = cozeResponse.messages.find((message: any) => 
-      message.role === 'assistant' && message.type === 'answer'
-    );
-
-    const content = answerMessage ? answerMessage.content : "No relevant answer found";
-
-    // Ajouter la réponse de l'API à la conversation
-    messages.push({ role: 'assistant', content });
-
-    // Mettre à jour la conversation dans la base de données
-    await kv.set(`conversation_${userId}`, messages);
-
-    return new Response(content, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/plain'
-      }
-    });
-  } catch (error) {
-    const errorMessage = (error as Error).message || "Unknown error";
-    return new Response(`Erreur lors de l'appel à l'API: ${errorMessage}`, {
-      status: 500,
-    });
-  }
-}
-
-export async function GET(req: Request) {
-  const ip = req.headers.get("x-forwarded-for") || "unknown";
-  const userId = generateUniqueId(ip);
-
-  try {
-    // Récupérer la conversation depuis la base de données
-    const messages = await kv.get(`conversation_${userId}`);
-
-    return new Response(JSON.stringify(messages), {
+    return new Response(JSON.stringify(cozeResponse), {
       status: 200,
       headers: {
         'Content-Type': 'application/json'
@@ -115,7 +70,7 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     const errorMessage = (error as Error).message || "Unknown error";
-    return new Response(`Erreur lors de la récupération de la conversation: ${errorMessage}`, {
+    return new Response(`Erreur lors de l'appel à l'API Coze: ${errorMessage}`, {
       status: 500,
     });
   }
